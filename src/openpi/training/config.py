@@ -10,7 +10,7 @@ from typing import Any, Protocol, TypeAlias
 
 import etils.epath as epath
 import flax.nnx as nnx
-from lerobot.common.datasets.lerobot_dataset import LEROBOT_HOME
+from lerobot.common.constants import HF_LEROBOT_HOME
 from lerobot.common.datasets.utils import load_info
 from lerobot.common.datasets.utils import load_tasks
 import numpy as np
@@ -99,7 +99,7 @@ class DataConfig:
     prompt_from_task: bool = False
 
     # If true, will disable syncing the dataset from the Hugging Face Hub. Allows training on local-only datasets.
-    local_files_only: bool = False
+    # local_files_only: bool = False
 
 
 class GroupFactory(Protocol):
@@ -363,7 +363,6 @@ class LeRobotTavlaDataConfig(DataConfigFactory):
         images = {
             "cam_high": "observation.images.cam_high",
             "cam_left_wrist": "observation.images.cam_left_wrist",
-            "cam_right_wrist": "observation.images.cam_right_wrist",
         }
         repack_dict = {
             "images": images,
@@ -553,7 +552,7 @@ class TrainConfig:
     # How often (in steps) to log training metrics.
     log_interval: int = 100
     # How often (in steps) to save checkpoints.
-    save_interval: int = 1000
+    save_interval: int = 5000
     # If set, any existing checkpoints matching step % keep_period == 0 will not be deleted.
     keep_period: int | None = 5000
 
@@ -563,7 +562,7 @@ class TrainConfig:
     resume: bool = False
 
     # If true, will enable wandb logging.
-    wandb_enabled: bool = False
+    wandb_enabled: bool = True
 
     # Used to pass metadata to the policy server.
     policy_metadata: dict[str, Any] | None = None
@@ -690,7 +689,7 @@ _CONFIGS = [
         data=LeRobotLiberoDataConfig(
             repo_id="physical-intelligence/libero",
             base_config=DataConfig(
-                local_files_only=False,  # Set to True for local-only datasets.
+                # local_files_only=False,  # Set to True for local-only datasets.
                 # This flag determines whether we load the prompt (i.e. the task instruction) from the
                 # ``task`` field in the LeRobot dataset. If set to True, the prompt will show up in
                 # a field called ``prompt`` in the input dict. The recommended setting is True.
@@ -711,7 +710,7 @@ _CONFIGS = [
         data=LeRobotLiberoDataConfig(
             repo_id="physical-intelligence/libero",
             base_config=DataConfig(
-                local_files_only=False,  # Set to True for local-only datasets.
+                # local_files_only=False,  # Set to True for local-only datasets.
                 prompt_from_task=True,
             ),
         ),
@@ -743,7 +742,7 @@ _CONFIGS = [
         data=LeRobotLiberoDataConfig(
             repo_id="physical-intelligence/libero",
             base_config=DataConfig(
-                local_files_only=False,  # Set to True for local-only datasets.
+                # local_files_only=False,  # Set to True for local-only datasets.
                 prompt_from_task=True,
             ),
         ),
@@ -761,7 +760,7 @@ _CONFIGS = [
         data=LeRobotLiberoDataConfig(
             repo_id="physical-intelligence/libero",
             base_config=DataConfig(
-                local_files_only=False,  # Set to True for local-only datasets.
+                # local_files_only=False,  # Set to True for local-only datasets.
                 prompt_from_task=True,
             ),
         ),
@@ -797,7 +796,6 @@ _CONFIGS = [
                             "images": {
                                 "cam_high": "observation.images.cam_high",
                                 "cam_left_wrist": "observation.images.cam_left_wrist",
-                                "cam_right_wrist": "observation.images.cam_right_wrist",
                             },
                             "state": "observation.state",
                             "actions": "action",
@@ -806,7 +804,7 @@ _CONFIGS = [
                 ]
             ),
             base_config=DataConfig(
-                local_files_only=False,  # Set to True for local-only datasets.
+                # local_files_only=False,  # Set to True for local-only datasets.
             ),
         ),
         weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_base/params"),
@@ -821,7 +819,7 @@ _CONFIGS = [
             default_prompt="do something",
 
             base_config=DataConfig(
-                local_files_only=True, # Set to True for local-only datasets.
+                # local_files_only=True, # Set to True for local-only datasets.
             ),
         ),
         weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_base/params"),
@@ -833,17 +831,17 @@ _CONFIGS = [
     ),
     TrainConfig(
         name="pi0_lora_effort",
-        model=pi0.Pi0Config(paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora", effort_type=EffortType.EXPERT),
+        model=pi0.Pi0Config(paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora", effort_type=EffortType.EXPERT, effort_dim=7),
         data=LeRobotTavlaDataConfig(
-            repo_id="org/repo",
+            repo_id="/share_data/zhangborong/datasets/VLA-Arena/VLA_Arena_L0_L_lerobot_openpi_with_efforts",
             effort_history=(0,),
-            default_prompt="do something",
 
             base_config=DataConfig(
-                local_files_only=True, # Set to True for local-only datasets.
+                # local_files_only=True, # Set to True for local-only datasets.
+                prompt_from_task=True,
             ),
         ),
-        weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_base/params"),
+        weight_loader=weight_loaders.CheckpointWeightLoader("/share_data/zhangborong/models/pi0_base/params"),
         num_train_steps=30_000,
         freeze_filter=pi0.Pi0Config(
             paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
@@ -859,7 +857,7 @@ _CONFIGS = [
             default_prompt="do something",
 
             base_config=DataConfig(
-                local_files_only=True, # Set to True for local-only datasets.
+                # local_files_only=True, # Set to True for local-only datasets.
             ),
         ),
         weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_base/params"),

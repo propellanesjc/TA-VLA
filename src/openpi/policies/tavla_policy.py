@@ -46,14 +46,17 @@ class TavlaInputs(transforms.DataTransformFn):
             "base_0_rgb": np.True_,
         }
 
-        # Add the extra images.
+        # Add the extra images (gracefully handle missing cameras).
         extra_image_names = {
             "left_wrist_0_rgb": "cam_left_wrist",
-            "right_wrist_0_rgb": "cam_right_wrist",
         }
         for dest, source in extra_image_names.items():
-            images[dest] = _parse_image(in_images[source])
-            image_masks[dest] = np.True_
+            if source in in_images:
+                images[dest] = _parse_image(in_images[source])
+                image_masks[dest] = np.True_
+            else:
+                images[dest] = np.zeros_like(base_image)
+                image_masks[dest] = np.False_
 
         inputs = {
             "image": images,

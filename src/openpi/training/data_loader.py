@@ -99,7 +99,7 @@ def create_dataset(data_config: _config.DataConfig, model_config: _model.BaseMod
     else:
         dataset_class = lerobot_dataset.MultiLeRobotDataset
     # NOTE here we assume all repos have the same fps.
-    dataset_meta = lerobot_dataset.LeRobotDatasetMetadata(repo_id[0] if isinstance(repo_id, list) else repo_id, local_files_only=data_config.local_files_only)
+    dataset_meta = lerobot_dataset.LeRobotDatasetMetadata(repo_id[0] if isinstance(repo_id, list) else repo_id)
     
     delta_timestamps = {
         **{
@@ -115,7 +115,7 @@ def create_dataset(data_config: _config.DataConfig, model_config: _model.BaseMod
     dataset = dataset_class(
         repo_id,
         delta_timestamps=delta_timestamps,
-        local_files_only=data_config.local_files_only,
+        # local_files_only=data_config.local_files_only,
     )
 
     if data_config.prompt_from_task:
@@ -123,7 +123,7 @@ def create_dataset(data_config: _config.DataConfig, model_config: _model.BaseMod
             dataset = TransformedDataset(dataset, [_transforms.PromptFromLeRobotTask(dataset_meta.tasks)])
         else:
             for idx, repo_id in enumerate(repo_id):
-                dataset_meta = lerobot_dataset.LeRobotDatasetMetadata(repo_id, local_files_only=data_config.local_files_only)
+                dataset_meta = lerobot_dataset.LeRobotDatasetMetadata(repo_id)
                 dataset._datasets[idx] = TransformedDataset(dataset._datasets[idx], [_transforms.PromptFromLeRobotTask(dataset_meta.tasks)])
 
     return dataset
